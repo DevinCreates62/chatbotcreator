@@ -1,0 +1,338 @@
+<html><head><base href="."><base target="_blank">
+<style>
+:root {
+  --primary: #2a9d8f;
+  --secondary: #e76f51;
+  --bg: #264653;
+  --text: #f4f1de;
+  --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1, h2 {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.5rem;
+}
+
+.chat-creator {
+  background: rgba(255,255,255,0.1);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: transform 0.3s ease;
+}
+
+.chat-creator:hover {
+  transform: translateY(-5px);
+}
+
+.bot-type-selector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.bot-type-btn {
+  flex: 1;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid var(--primary);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bot-type-btn.active {
+  background: var(--gradient);
+  border-color: transparent;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 2px solid var(--primary);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+textarea:focus {
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 3px rgba(231,111,81,0.3);
+  outline: none;
+}
+
+button {
+  background: var(--gradient);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(42,157,143,0.3);
+}
+
+.chat-interface {
+  margin-top: 2rem;
+  display: none;
+  animation: slideUp 0.5s ease-out;
+}
+
+.messages {
+  background: rgba(255,255,255,0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.message {
+  padding: 1rem;
+  margin: 0.8rem 0;
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease-out;
+  max-width: 80%;
+}
+
+.user-message {
+  background: var(--primary);
+  margin-left: auto;
+  box-shadow: 2px 2px 12px rgba(42,157,143,0.2);
+}
+
+.bot-message {
+  background: var(--secondary);
+  margin-right: auto;
+  box-shadow: 2px 2px 12px rgba(231,111,81,0.2);
+}
+
+.input-area {
+  display: flex;
+  gap: 1rem;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid var(--primary);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-area input:focus {
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 3px rgba(231,111,81,0.3);
+  outline: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Chatbot Creator</h1>
+  
+  <div class="chat-creator">
+    <h2>Design Your Chatbot</h2>
+    <div class="bot-type-selector">
+      <button class="bot-type-btn active" onclick="setBotType(&apos;chat&apos;)" id="chatBtn">Chat Bot</button>
+    </div>
+    <textarea id="botPrompt" placeholder="Describe your chatbot&apos;s personality and purpose. For example: &apos;Create a friendly cooking assistant bot that helps users find recipes and provides cooking tips.&apos;"></textarea>
+    <button onclick="createBot()">Generate Chatbot</button>
+  </div>
+
+  <div id="chatInterface" class="chat-interface">
+    <h2 id="botTitle">Your Chatbot</h2>
+    <div id="messages" class="messages"></div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>let botPersonality = '';
+let conversationHistory = [];
+function setBotType(type) {
+  document.getElementById('chatBtn').classList.add('active');
+  document.getElementById('botPrompt').placeholder = "Describe your chatbot's personality and purpose. For example: 'Create a friendly cooking assistant bot that helps users find recipes and provides cooking tips.'";
+}
+async function createBot() {
+  const prompt = document.getElementById('botPrompt').value;
+  if (!prompt) {
+    alert('Please describe your chatbot first!');
+    return;
+  }
+  conversationHistory = [];
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('userInput').value = '';
+  try {
+    const response = await fetch('/api/ai_completion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: `Create a chatbot personality based on this description: "${prompt}"
+        Respond with a title for the bot and an initial greeting message.
+        
+        <typescript-interface>
+        interface Response {
+          title: string;
+          greeting: string;
+          personality: string;
+        }
+        </typescript-interface>
+        
+        <example>
+        {
+          "title": "Chef Bobby - Your Cooking Companion",
+          "greeting": "Hello! I'm Chef Bobby, your personal cooking assistant. What would you like to cook today?",
+          "personality": "A friendly, knowledgeable chef who loves helping people discover new recipes"
+        }
+        </example>`,
+        data: prompt
+      })
+    });
+    const data = await response.json();
+    document.getElementById('botTitle').textContent = data.title;
+    document.getElementById('chatInterface').style.display = 'block';
+    botPersonality = data.personality;
+    addMessage('bot', data.greeting);
+    document.getElementById('chatInterface').scrollIntoView({
+      behavior: 'smooth'
+    });
+    document.getElementById('userInput').focus();
+    conversationHistory = [{
+      role: 'assistant',
+      content: data.greeting
+    }];
+  } catch (error) {
+    console.error('Error creating bot:', error);
+    alert('Error creating bot. Please try again.');
+  }
+}
+async function sendMessage() {
+  const userInput = document.getElementById('userInput');
+  const message = userInput.value.trim();
+  if (!message) return;
+  addMessage('user', message);
+  userInput.value = '';
+  conversationHistory.push({
+    role: 'user',
+    content: message
+  });
+  try {
+    const response = await fetch('/api/ai_completion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: `You are a chatbot with the following personality: ${botPersonality}
+        
+        Respond to the user's message in character.
+        Keep responses concise but helpful.
+        
+        <typescript-interface>
+        interface Response {
+          reply: string;
+        }
+        </typescript-interface>
+        
+        <example>
+        {
+          "reply": "That's a great question! Here's a simple recipe for chocolate chip cookies that you'll love..."
+        }
+        </example>`,
+        data: {
+          personality: botPersonality,
+          history: conversationHistory
+        }
+      })
+    });
+    const data = await response.json();
+    addMessage('bot', data.reply);
+    conversationHistory.push({
+      role: 'assistant',
+      content: data.reply
+    });
+  } catch (error) {
+    console.error('Error getting response:', error);
+    addMessage('bot', 'Sorry, I encountered an error. Please try again.');
+  }
+}
+function addMessage(type, text) {
+  const messages = document.getElementById('messages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${type}-message`;
+  messageDiv.textContent = text;
+  messages.appendChild(messageDiv);
+  messages.scrollTop = messages.scrollHeight;
+}
+function handleKeyPress(event) {
+  if (event.key === 'Enter') {
+    sendMessage();
+  }
+}</script>
+</body>
+</html>
